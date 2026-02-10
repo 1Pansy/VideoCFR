@@ -1,12 +1,8 @@
-Consensus Frame GRPO: Brain-Inspired Unlabeled Alignment for Guiding Visual Focus
+Reasoning as Intersection: VideoCFR for Visual Focus Alignment in Video-MLLMs
 <div align="center">
 <!-- 替换为你的 Arxiv 链接，如果没有先写 Coming Soon -->
-![alt text](https://img.shields.io/badge/arXiv-Paper-b31b1b.svg)
-<!-- 替换为 HuggingFace 链接 -->
-![alt text](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)
-
+![alt text](Coming Soon)
 ![alt text](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-
 ![alt text](https://img.shields.io/badge/Code-Coming%20Soon-green)
 Enhancing Trustworthy Reasoning in Video Multimodal LLMs via Process Supervision
 </div>
