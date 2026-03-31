@@ -54,13 +54,11 @@ from qwen_vl_utils import process_vision_info
 
 import copy
 
-
 if is_peft_available():
     from peft import PeftConfig, get_peft_model
 
 if is_wandb_available():
     import wandb
-    
 
 # What we call a reward function is a callable that takes a list of prompts and completions and returns a list of
 # rewards. When it's a string, it's a model ID, so it's loaded as a pretrained model.
@@ -209,7 +207,7 @@ class Qwen2VLGRPOTrainer(Trainer):
             - A string, being the *model id* of a pretrained model hosted inside a model repo on huggingface.co, or
               a path to a *directory* containing model weights saved using
               [`~transformers.PreTrainedModel.save_pretrained`], e.g., `'./my_model_directory/'`. The model is
-              loaded using [`~transformers.AutoModelForCausalLM.from_pretrained`] with the keywork arguments
+              loaded using[`~transformers.AutoModelForCausalLM.from_pretrained`] with the keywork arguments
               in `args.model_init_kwargs`.
             - A [`~transformers.PreTrainedModel`] object. Only causal language models are supported.
         reward_funcs (`Union[RewardFunc, list[RewardFunc]]`):
@@ -218,11 +216,10 @@ class Qwen2VLGRPOTrainer(Trainer):
 
             - A single reward function, such as:
                 - A string: The *model ID* of a pretrained model hosted inside a model repo on huggingface.co, or a
-                path to a *directory* containing model weights saved using
-                [`~transformers.PreTrainedModel.save_pretrained`], e.g., `'./my_model_directory/'`. The model is loaded
+                path to a *directory* containing model weights saved using[`~transformers.PreTrainedModel.save_pretrained`], e.g., `'./my_model_directory/'`. The model is loaded
                 using [`~transformers.AutoModelForSequenceClassification.from_pretrained`] with `num_labels=1` and the
                 keyword arguments in `args.model_init_kwargs`.
-                - A [`~transformers.PreTrainedModel`] object: Only sequence classification models are supported.
+                - A[`~transformers.PreTrainedModel`] object: Only sequence classification models are supported.
                 - A custom reward function: The function is provided with the prompts and the generated completions,
                   plus any additional columns in the dataset. It should return a list of rewards. For more details, see
                   [Using a custom reward function](#using-a-custom-reward-function).
@@ -235,13 +232,13 @@ class Qwen2VLGRPOTrainer(Trainer):
             ignored. The format of the samples can be either:
 
             - [Standard](dataset_formats#standard): Each sample contains plain text.
-            - [Conversational](dataset_formats#conversational): Each sample contains structured messages (e.g., role
+            -[Conversational](dataset_formats#conversational): Each sample contains structured messages (e.g., role
               and content).
         eval_dataset ([`~datasets.Dataset`], [`~datasets.IterableDataset`] or `dict[str, Union[Dataset, IterableDataset]]`):
             Dataset to use for evaluation. It must meet the same requirements as `train_dataset`.
         processing_class ([`~transformers.PreTrainedTokenizerBase`], *optional*, defaults to `None`):
             Processing class used to process the data. The padding side must be set to "left". If `None`, the
-            processing class is loaded from the model's name with [`~transformers.AutoTokenizer.from_pretrained`].
+            processing class is loaded from the model's name with[`~transformers.AutoTokenizer.from_pretrained`].
         reward_processing_classes (`Union[PreTrainedTokenizerBase, list[PreTrainedTokenizerBase]]`, *optional*, defaults to `None`):
             Processing classes corresponding to the reward functions specified in `reward_funcs`. Can be either:
 
@@ -251,42 +248,42 @@ class Qwen2VLGRPOTrainer(Trainer):
             `None`, the tokenizer for the model is automatically loaded using [`~transformers.AutoTokenizer.from_pretrained`].
             For elements in `reward_funcs` that are custom reward functions (not [`~transformers.PreTrainedModel`]),
             the corresponding entries in `reward_processing_classes` are ignored.
-        callbacks (list of [`~transformers.TrainerCallback`], *optional*, defaults to `None`):
+        callbacks (list of[`~transformers.TrainerCallback`], *optional*, defaults to `None`):
             List of callbacks to customize the training loop. Will add those to the list of default callbacks
             detailed in [here](https://huggingface.co/docs/transformers/main_classes/callback).
 
             If you want to remove one of the default callbacks used, use the [`~transformers.Trainer.remove_callback`]
             method.
         optimizers (`tuple[torch.optim.Optimizer, torch.optim.lr_scheduler.LambdaLR]`, *optional*, defaults to `(None, None)`):
-            A tuple containing the optimizer and the scheduler to use. Will default to an instance of [`AdamW`] on your
+            A tuple containing the optimizer and the scheduler to use. Will default to an instance of[`AdamW`] on your
             model and a scheduler given by [`get_linear_schedule_with_warmup`] controlled by `args`.
         peft_config ([`~peft.PeftConfig`], *optional*, defaults to `None`):
             PEFT configuration used to wrap the model. If `None`, the model is not wrapped.
     """
 
     def __init__(
-        self,
-        model: Union[str, PreTrainedModel],
-        reward_funcs: Union[RewardFunc, list[RewardFunc]],
-        args: GRPOConfig = None,
-        script_args = None,
-        train_dataset: Optional[Union[Dataset, IterableDataset]] = None,
-        eval_dataset: Optional[Union[Dataset, IterableDataset, dict[str, Union[Dataset, IterableDataset]]]] = None,
-        processing_class: Optional[PreTrainedTokenizerBase] = None,
-        reward_processing_classes: Optional[Union[PreTrainedTokenizerBase, list[PreTrainedTokenizerBase]]] = None,
-        callbacks: Optional[list[TrainerCallback]] = None,
-        optimizers: tuple[Optional[torch.optim.Optimizer], Optional[torch.optim.lr_scheduler.LambdaLR]] = (None, None),
-        peft_config: Optional["PeftConfig"] = None,
-        max_pixels: Optional[int] = 12845056,
-        min_pixels: Optional[int] = 3136,
-        attn_implementation: str = "flash_attention_2",
+            self,
+            model: Union[str, PreTrainedModel],
+            reward_funcs: Union[RewardFunc, list[RewardFunc]],
+            args: GRPOConfig = None,
+            script_args=None,
+            train_dataset: Optional[Union[Dataset, IterableDataset]] = None,
+            eval_dataset: Optional[Union[Dataset, IterableDataset, dict[str, Union[Dataset, IterableDataset]]]] = None,
+            processing_class: Optional[PreTrainedTokenizerBase] = None,
+            reward_processing_classes: Optional[Union[PreTrainedTokenizerBase, list[PreTrainedTokenizerBase]]] = None,
+            callbacks: Optional[list[TrainerCallback]] = None,
+            optimizers: tuple[Optional[torch.optim.Optimizer], Optional[torch.optim.lr_scheduler.LambdaLR]] = (
+            None, None),
+            peft_config: Optional["PeftConfig"] = None,
+            max_pixels: Optional[int] = 12845056,
+            min_pixels: Optional[int] = 3136,
+            attn_implementation: str = "flash_attention_2",
     ):
         # Args
         if args is None:
             model_name = model if isinstance(model, str) else model.config._name_or_path
             model_name = model_name.split("/")[-1]
             args = GRPOConfig(f"{model_name}-GRPO")
-            
 
         # Models
         # Trained model
@@ -330,7 +327,6 @@ class Qwen2VLGRPOTrainer(Trainer):
         if peft_config is not None:
             model = get_peft_model(model, peft_config)
 
-        #self.ref_model = None
         # Reference model
         if is_deepspeed_zero3_enabled():
             if "Qwen2-VL" in model_id:
@@ -405,19 +401,22 @@ class Qwen2VLGRPOTrainer(Trainer):
         self.num_generations = args.num_generations  # = G in the GRPO paper
         self.temporal = script_args.temporal
         self.len_control = script_args.len_control
-        # 全局早期跳过阈值：任何模态 prompt 长度超过该阈值，直接跳过本 step（防止生成阶段 OOM）
+
+        # Global early skip threshold: If the prompt length of any modality exceeds this threshold,
+        # skip the current step (to prevent OOM during generation)
         try:
             self.force_max_prompt_length = int(os.getenv("FORCE_MAX_PROMPT_LEN", "16384"))
         except Exception:
             self.force_max_prompt_length = 16384
-        # 仅用于logprob阶段的视频全局跳过阈值（保持脚本参数一致）
+
+        # Video global skip threshold for the logprob stage (keep script parameters consistent)
         self.video_logprob_skip_len = getattr(script_args, "video_logprob_skip_len", 16384)
-        
+
         self.generation_config = GenerationConfig(
             max_new_tokens=self.max_completion_length,
             do_sample=True,
-            top_p=0.95,  
-            temperature=1.0, # HACK
+            top_p=0.95,
+            temperature=1.0,  # HACK
             num_return_sequences=self.num_generations,
             pad_token_id=pad_token_id,
         )
@@ -425,17 +424,17 @@ class Qwen2VLGRPOTrainer(Trainer):
         self.shuffled_generation_config = GenerationConfig(
             max_new_tokens=self.max_completion_length,
             do_sample=True,
-            top_p=0.95,  
-            temperature=1.0, # HACK
+            top_p=0.95,
+            temperature=1.0,  # HACK
             num_return_sequences=self.shuffled_num_generations,
             pad_token_id=pad_token_id,
         )
-        
+
         self.dummy_generation_config = GenerationConfig(
             max_new_tokens=1,
             do_sample=True,
-            top_p=0.95,  
-            temperature=1, # HACK
+            top_p=0.95,
+            temperature=1,  # HACK
             num_return_sequences=1,
             pad_token_id=pad_token_id,
         )
@@ -469,7 +468,8 @@ class Qwen2VLGRPOTrainer(Trainer):
             try:
                 if self.accelerator.is_main_process and getattr(wandb, "run", None) is None:
                     run_name = getattr(args, "run_name", None) or os.path.basename(self.args.output_dir.rstrip("/\\"))
-                    wandb.init(project=os.environ.get("WANDB_PROJECT", "video-r1"), name=run_name, config=self.args.to_dict())
+                    wandb.init(project=os.environ.get("WANDB_PROJECT", "video-r1"), name=run_name,
+                               config=self.args.to_dict())
             except Exception as wandb_init_err:
                 print(f"[wandb] init failed: {wandb_init_err}")
 
@@ -496,12 +496,8 @@ class Qwen2VLGRPOTrainer(Trainer):
         if self._signature_columns is None:
             self._signature_columns = ["prompt"]
 
-
     # Get the per-token log probabilities for the completions for the model and the reference model
     def _get_per_token_logps(self, model, input_ids, **kwargs):
-        # logits = model(input_ids, attention_mask=attention_mask, pixel_values=pixel_values, image_grid_thw=image_grid_thw).logits  # (B, L, V)
-        # import pdb
-        # pdb.set_trace()
         logits = model(input_ids, **kwargs).logits
         logits = logits[:, :-1, :]  # (B, L-1, V), exclude the last logit: it corresponds to the next token pred
         input_ids = input_ids[:, 1:]  # (B, L-1), exclude the first input ID since we don't have logits for it
@@ -512,7 +508,7 @@ class Qwen2VLGRPOTrainer(Trainer):
             token_log_prob = torch.gather(log_probs, dim=1, index=input_ids_row.unsqueeze(1)).squeeze(1)
             per_token_logps.append(token_log_prob)
         return torch.stack(per_token_logps)
-    
+
     def remove_none_from_data(self, data):
         for entry in data:
             if "content" in entry and isinstance(entry["content"], list):
@@ -523,12 +519,6 @@ class Qwen2VLGRPOTrainer(Trainer):
                             del sub_entry[k]
         return data
 
-    # The experimental `compute_effort_reward` helper has been removed to
-    # avoid confusion and to keep the trainer consistent with the official
-    # length-reward implementation. If you need a custom effort-based reward
-    # reintroduce it here with a clear name and ensure it's exercised by the
-    # reward aggregation logic.
-
     # Trainer "prepares" the inputs before calling `compute_loss`. It converts to tensor and move to device.
     # Since we preprocess the data in `compute_loss`, we need to override this method to skip this step.
     def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
@@ -537,45 +527,42 @@ class Qwen2VLGRPOTrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         if return_outputs:
             raise ValueError("The GRPOTrainer does not support returning outputs")
-    
-        # 【调试】打印输入数据的基本信息 (仅在 DEBUG_MODE=true 时输出)
+
+        # [DEBUG] Print basic information of input data (only output when DEBUG_MODE=true)
         if os.getenv("DEBUG_MODE") == "true":
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print(f"🔍 DEBUG: Batch info - Rank {self.accelerator.process_index}")
             print(f"   Number of inputs: {len(inputs)}")
             print(f"   Sample data_type: {inputs[0].get('data_type', 'MISSING')}")
             print(f"   Sample problem_id: {inputs[0].get('problem_id', 'MISSING')}")
             print(f"   Sample path: {inputs[0].get('path', 'MISSING')}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
         prompts = [x["prompt"] for x in inputs]
         prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
 
-                
-        
         input_copy = copy.deepcopy(inputs[0]['prompt'])
-        
         input_copy = self.remove_none_from_data(input_copy)
-        
+
         if inputs[0]['data_type'] == 'image':
-            # 处理路径:移除开头的.或./
+            # Process path: remove leading . or ./
             rel_path = inputs[0]['path'].lstrip('./')
             input_copy[0]['content'][0]['image'] = os.getcwd() + "/Video-R1-data/" + rel_path
         elif inputs[0]['data_type'] == 'video':
-            # 处理路径:移除开头的.或./
+            # Process path: remove leading . or ./
             rel_path = inputs[0]['path'].lstrip('./')
             video_path = os.getcwd() + "/Video-R1-data/" + rel_path
             input_copy[0]['content'][0]['video'] = video_path
-            # 调试:检查视频文件是否存在
+            # Debug: check if video file exists
             if not os.path.exists(video_path):
                 print(f"⚠️ Video file NOT FOUND: {video_path}")
                 print(f"   Original path from JSON: {inputs[0]['path']}")
                 print(f"   Current working dir: {os.getcwd()}")
                 print(f"   After lstrip: {rel_path}")
-            
+
         try:
             image_inputs, video_inputs, video_kwargs = process_vision_info(input_copy, return_video_kwargs=True)
-            # 【调试】打印process_vision_info的输出 (仅在 DEBUG_MODE=true 时)
+            # [DEBUG] Print output of process_vision_info (only when DEBUG_MODE=true)
             if os.getenv("DEBUG_MODE") == "true":
                 print(f"📊 process_vision_info SUCCESS:")
                 print(f"   image_inputs: {type(image_inputs)}, len={len(image_inputs) if image_inputs else 0}")
@@ -587,13 +574,15 @@ class Qwen2VLGRPOTrainer(Trainer):
             print(f"⚠️ process_vision_info FAILED with error: {e}")
             print(f"   Traceback: {type(e).__name__}")
             if inputs[0]['data_type'] == 'image':
-                input_copy[0]['content'][0]['image'] = os.getcwd() + "/Video-R1-data" + '/Math/Multimath-300k/17ff4c7d14c388134de02381b1fc2824.png'
+                input_copy[0]['content'][0][
+                    'image'] = os.getcwd() + "/Video-R1-data" + '/Math/Multimath-300k/17ff4c7d14c388134de02381b1fc2824.png'
             elif inputs[0]['data_type'] == 'video':
-                input_copy[0]['content'][0]['video'] = os.getcwd() + "/Video-R1-data" + '/LLaVA-Video-178K/liwei_youtube_videos/videos/youtube_video_2024/ytb_7nRmsEw7nsE.mp4'
-                
+                input_copy[0]['content'][0][
+                    'video'] = os.getcwd() + "/Video-R1-data" + '/LLaVA-Video-178K/liwei_youtube_videos/videos/youtube_video_2024/ytb_7nRmsEw7nsE.mp4'
+
             image_inputs, video_inputs, video_kwargs = process_vision_info(input_copy, return_video_kwargs=True)
             print(f"📊 process_vision_info RETRY SUCCESS after fallback")
-        
+
         if os.getenv("DEBUG_MODE") == "true":
             print(f"📊 BEFORE processing_class call:")
             print(f"   video_inputs is None?: {video_inputs is None}")
@@ -601,14 +590,15 @@ class Qwen2VLGRPOTrainer(Trainer):
             print(f"   video_inputs len: {len(video_inputs)}")
             if len(video_inputs) > 0:
                 print(f"   video_inputs[0] numel: {video_inputs[0].numel()}")
-        
-        # 验证视频输入是否有效
+
+        # Verify if video inputs are valid
         if inputs[0]['data_type'] == 'video' and video_inputs:
             if len(video_inputs) > 0 and video_inputs[0].numel() == 0:
-                print(f"⚠️ Empty video tensor detected for sample {inputs[0].get('problem_id', 'unknown')}, skipping this batch")
-                # 返回零损失,跳过该样本
+                print(
+                    f"⚠️ Empty video tensor detected for sample {inputs[0].get('problem_id', 'unknown')}, skipping this batch")
+                # Return zero loss, skip this sample
             prompts = [x["prompt"] for x in inputs if "prompt" in x]
-        
+
         prompt_inputs = self.processing_class(
             text=copy.deepcopy(prompts_text),
             images=image_inputs,
@@ -618,8 +608,8 @@ class Qwen2VLGRPOTrainer(Trainer):
             padding_side="left",
             add_special_tokens=False,
         )
-        
-        # 【调试】打印processing_class的输出 (仅在 DEBUG_MODE=true 时)
+
+        # [DEBUG] Print output of processing_class (only when DEBUG_MODE=true)
         if os.getenv("DEBUG_MODE") == "true":
             print(f"📊 processing_class OUTPUT:")
             print(f"   Keys: {list(prompt_inputs.keys())}")
@@ -639,62 +629,66 @@ class Qwen2VLGRPOTrainer(Trainer):
                 pv = prompt_inputs['pixel_values']
                 print(f"   pixel_values shape: {pv.shape}")
                 print(f"   pixel_values dim: {pv.dim()}")
-        
+
         prompt_inputs = super()._prepare_inputs(prompt_inputs)
-        
-        # 【关键修复】在generate()之前检查video_grid_thw是否为空或包含0
+
+        # Check if video_grid_thw is empty or contains 0 before generate()
         if inputs[0]['data_type'] == 'video':
             if "video_grid_thw" not in prompt_inputs:
-                print(f"⚠️ Missing video_grid_thw for sample {inputs[0].get('problem_id', 'unknown')}, path: {inputs[0].get('path', 'N/A')}")
+                print(
+                    f"⚠️ Missing video_grid_thw for sample {inputs[0].get('problem_id', 'unknown')}, path: {inputs[0].get('path', 'N/A')}")
                 return torch.zeros((), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
-            
-            # 检查video_grid_thw是否为空tensor或包含全0值
+
+            # Check if video_grid_thw is an empty tensor or contains all 0s
             vgt = prompt_inputs["video_grid_thw"]
             if vgt.numel() == 0 or len(vgt) == 0:
                 print(f"⚠️ Empty video_grid_thw tensor for sample {inputs[0].get('problem_id', 'unknown')}")
                 print(f"   Video path: {input_copy[0]['content'][0].get('video', 'N/A')}")
                 return torch.zeros((), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
-            
-            # 检查video_grid_thw是否包含0值(这会导致split_with_sizes错误)
+
+            # Check if video_grid_thw contains 0 values (this would cause split_with_sizes error)
             if (vgt == 0).all() or vgt.sum() == 0:
                 print(f"⚠️ video_grid_thw contains all zeros for sample {inputs[0].get('problem_id', 'unknown')}")
                 print(f"   video_grid_thw shape: {vgt.shape}, values: {vgt}")
                 print(f"   Video path: {input_copy[0]['content'][0].get('video', 'N/A')}")
                 return torch.zeros((), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
 
-        # fix prompt_inputs["input_ids"] length issue
-        # 注意: 视频样本包含大量 video placeholder token,如果截断可能导致
-        # "Videos features and video tokens do not match" 错误。
-        # 观察报错 tokens < features, 推测截断丢失了一部分视频占位符。
-        # 因此对 video 样本暂时禁用截断,仅对 image/纯文本样本应用 max_prompt_length。
+        # prompt_inputs["input_ids"] length issue
+        # Note: Video samples contain many video placeholder tokens. Truncation might cause
+        # "Videos features and video tokens do not match" errors.
+        # Observed error tokens < features, presumably truncation lost some video placeholders.
+        # Therefore, temporarily disable truncation for video samples, apply max_prompt_length only to image/text samples.
         if self.max_prompt_length is not None:
             if inputs[0].get('data_type') != 'video':
-                prompt_inputs["input_ids"] = prompt_inputs["input_ids"][:, -self.max_prompt_length :]
-                prompt_inputs["attention_mask"] = prompt_inputs["attention_mask"][:, -self.max_prompt_length :]
+                prompt_inputs["input_ids"] = prompt_inputs["input_ids"][:, -self.max_prompt_length:]
+                prompt_inputs["attention_mask"] = prompt_inputs["attention_mask"][:, -self.max_prompt_length:]
             else:
                 if os.getenv("DEBUG_MODE") == "true":
-                    print(f"[DEBUG] Skip prompt truncation for video sample to keep all video placeholder tokens. input_ids_len={prompt_inputs['input_ids'].size(1)} max_prompt_length={self.max_prompt_length}")
+                    print(
+                        f"[DEBUG] Skip prompt truncation for video sample to keep all video placeholder tokens. input_ids_len={prompt_inputs['input_ids'].size(1)} max_prompt_length={self.max_prompt_length}")
 
         prompt_ids, prompt_mask = prompt_inputs["input_ids"], prompt_inputs["attention_mask"]
 
-        
         if self.max_prompt_length is not None and inputs[0].get('data_type') != 'video':
-            prompt_ids = prompt_ids[:, -self.max_prompt_length :]
-            prompt_mask = prompt_mask[:, -self.max_prompt_length :]
-        elif self.max_prompt_length is not None and inputs[0].get('data_type') == 'video' and os.getenv("DEBUG_MODE") == "true":
-            print(f"[DEBUG] Keeping full prompt (video) after potential truncation stage. prompt_len={prompt_ids.size(1)}")
-        
-        # 【全局早期跳过】在构造 shuffled_prompt_inputs 之前：对超长 prompt 直接全局跳过
+            prompt_ids = prompt_ids[:, -self.max_prompt_length:]
+            prompt_mask = prompt_mask[:, -self.max_prompt_length:]
+        elif self.max_prompt_length is not None and inputs[0].get('data_type') == 'video' and os.getenv(
+                "DEBUG_MODE") == "true":
+            print(
+                f"[DEBUG] Keeping full prompt (video) after potential truncation stage. prompt_len={prompt_ids.size(1)}")
+
+        # [Global early skip] Before constructing shuffled_prompt_inputs: globally skip super long prompts
         try:
             _plen = prompt_ids.size(1)
         except Exception:
             _plen = None
-        # 全部rank参与一次全局判定，避免collective不对齐
+
+        # All ranks participate in a global check to avoid collective desynchronization
         try:
             import torch.distributed as dist
             local_flag = 1 if (_plen is not None and _plen > self.force_max_prompt_length) else 0
             flag_tensor = torch.tensor([local_flag], device=self.accelerator.device)
-            # 计算全局最大prompt长度，便于打印更直观的信息
+            # Calculate global max prompt length for better printing information
             local_len_val = int(_plen) if _plen is not None else 0
             maxlen_tensor = torch.tensor([local_len_val], device=self.accelerator.device)
             if dist.is_available() and dist.is_initialized():
@@ -708,19 +702,21 @@ class Qwen2VLGRPOTrainer(Trainer):
         except Exception:
             _global_skip = bool(_plen is not None and _plen > self.force_max_prompt_length)
             _global_max_len = int(_plen) if _plen is not None else 0
+
         if _global_skip:
             if self.accelerator.is_main_process:
-                print(f"⚠️ Early-skip before shuffle: global_max_len={_global_max_len} > {self.force_max_prompt_length} (local_len={_plen})")
+                print(
+                    f"⚠️ Early-skip before shuffle: global_max_len={_global_max_len} > {self.force_max_prompt_length} (local_len={_plen})")
             try:
                 if _plen is not None and _plen > self.force_max_prompt_length:
                     self._metrics["skipped_long_prompts"].append(float(_plen))
             except Exception:
                 pass
             self.accelerator.wait_for_everyone()
-            # 必须返回标量tensor并设置requires_grad，确保反向传播不会报错
+            # Must return a scalar tensor with requires_grad to ensure backward pass doesn't crash
             dummy_loss = torch.tensor(0.0, device=self.accelerator.device, dtype=torch.float32, requires_grad=True)
             return dummy_loss
-            
+
         if self.temporal and video_inputs:
             indices = torch.randperm(video_inputs[0].size(0))
             shuffled_video_inputs = [video_inputs[0][indices]]
@@ -734,56 +730,61 @@ class Qwen2VLGRPOTrainer(Trainer):
                 add_special_tokens=False,
             )
             shuffled_prompt_inputs = super()._prepare_inputs(shuffled_prompt_inputs)
-            
-            # 【关键修复】检查shuffled_prompt_inputs的video_grid_thw
+
+            # Check video_grid_thw in shuffled_prompt_inputs
             if "video_grid_thw" not in shuffled_prompt_inputs:
-                print(f"⚠️ Missing video_grid_thw in shuffled_prompt_inputs for sample {inputs[0].get('problem_id', 'unknown')}")
+                print(
+                    f"⚠️ Missing video_grid_thw in shuffled_prompt_inputs for sample {inputs[0].get('problem_id', 'unknown')}")
                 return torch.zeros((), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
-            
-            # 检查shuffled_prompt_inputs的video_grid_thw是否为空或包含0
+
+            # Check if video_grid_thw in shuffled_prompt_inputs is empty or contains 0
             svgt = shuffled_prompt_inputs["video_grid_thw"]
             if svgt.numel() == 0 or len(svgt) == 0:
-                print(f"⚠️ Empty video_grid_thw tensor in shuffled_prompt_inputs for sample {inputs[0].get('problem_id', 'unknown')}")
+                print(
+                    f"⚠️ Empty video_grid_thw tensor in shuffled_prompt_inputs for sample {inputs[0].get('problem_id', 'unknown')}")
                 return torch.zeros((), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
-            
+
             if (svgt == 0).all() or svgt.sum() == 0:
-                print(f"⚠️ shuffled video_grid_thw contains all zeros for sample {inputs[0].get('problem_id', 'unknown')}")
+                print(
+                    f"⚠️ shuffled video_grid_thw contains all zeros for sample {inputs[0].get('problem_id', 'unknown')}")
                 print(f"   video_grid_thw shape: {svgt.shape}, values: {svgt}")
                 return torch.zeros((), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
-            
-            shuffled_prompt_ids, shuffled_prompt_mask = shuffled_prompt_inputs["input_ids"], shuffled_prompt_inputs["attention_mask"]
+
+            shuffled_prompt_ids, shuffled_prompt_mask = shuffled_prompt_inputs["input_ids"], shuffled_prompt_inputs[
+                "attention_mask"]
             if self.max_prompt_length is not None:
-                shuffled_prompt_ids = shuffled_prompt_ids[:, -self.max_prompt_length :]
-                shuffled_prompt_mask = shuffled_prompt_mask[:, -self.max_prompt_length :]
-        
-        
-        # 【修复】在generate()之前,需要先深拷贝原始的video/image数据
-        # 因为generate()内部会修改video_grid_thw导致原始tensor损坏
-        # 保存完整的原始inputs用于每次循环
+                shuffled_prompt_ids = shuffled_prompt_ids[:, -self.max_prompt_length:]
+                shuffled_prompt_mask = shuffled_prompt_mask[:, -self.max_prompt_length:]
+
+        # Deepcopy original video/image data before generate()
+        # Because generate() modifies video_grid_thw internally, corrupting the original tensor
+        # Save complete original inputs for each loop iteration
         original_prompt_inputs_full = {}
         for key in prompt_inputs.keys():
             if isinstance(prompt_inputs[key], torch.Tensor):
                 original_prompt_inputs_full[key] = prompt_inputs[key].clone()
             else:
                 original_prompt_inputs_full[key] = prompt_inputs[key]
-        
-        # 在进入生成前做一次“本地软跳过”判断，避免对超长 prompt 在本rank触发重生成
+
+        # Perform a "local soft skip" check before entering generation to avoid triggering generation on super long prompts in this rank
         try:
             prompt_len_for_skip = prompt_ids.size(1)
         except Exception:
             prompt_len_for_skip = None
-        local_skip_generation = bool(prompt_len_for_skip is not None and prompt_len_for_skip > self.force_max_prompt_length)
+        local_skip_generation = bool(
+            prompt_len_for_skip is not None and prompt_len_for_skip > self.force_max_prompt_length)
         if local_skip_generation:
-            print(f"⚠️ Local soft-skip generation on Rank {self.accelerator.process_index}: prompt_len={prompt_len_for_skip} > {self.force_max_prompt_length}")
+            print(
+                f"⚠️ Local soft-skip generation on Rank {self.accelerator.process_index}: prompt_len={prompt_len_for_skip} > {self.force_max_prompt_length}")
             try:
                 if prompt_len_for_skip is not None and prompt_len_for_skip > self.force_max_prompt_length:
                     self._metrics["skipped_long_prompts"].append(float(prompt_len_for_skip))
             except Exception:
                 pass
 
-        # 【关键修复】Generate completions - 使用官方方式:循环生成而不是一次性生成
-        # 官方代码每次生成1个output,循环G次,避免了batch维度问题
-        # 每次循环前重新准备干净的prompt_inputs,避免generate()修改影响后续循环
+        # Generate completions - use official method: loop generation instead of one-shot
+        # Official code generates 1 output per iteration, looping G times to avoid batch dimension issues
+        # Prepare clean prompt_inputs before each loop to avoid generate() modifications affecting subsequent loops
         with unwrap_model_for_generation(model, self.accelerator) as unwrapped_model:
             num_generations = self.generation_config.num_return_sequences
             if local_skip_generation:
@@ -793,31 +794,33 @@ class Qwen2VLGRPOTrainer(Trainer):
                 temp_generation_config.num_return_sequences = 4
 
             all_completions = []
-            
+
             print(f"[Rank {self.accelerator.process_index}] Starting generation loop: {num_generations} iterations")
 
             for i in range(num_generations // 4):
-                print(f"[Rank {self.accelerator.process_index}] Generation {i+1}/{num_generations} starting...")
-                
-                # 每次循环都从原始数据重新创建干净的inputs
+                print(f"[Rank {self.accelerator.process_index}] Generation {i + 1}/{num_generations} starting...")
+
+                # Recreate clean inputs from original data for each loop
                 current_prompt_inputs = {}
                 for key in original_prompt_inputs_full.keys():
                     if isinstance(original_prompt_inputs_full[key], torch.Tensor):
                         current_prompt_inputs[key] = original_prompt_inputs_full[key].clone()
                     else:
                         current_prompt_inputs[key] = original_prompt_inputs_full[key]
-                
-                # 【关键修复】删除second_per_grid_ts,这个参数会干扰generate()
-                # 它只在某些特定场景下使用,标准的generate流程不需要它
+
+                # Delete second_per_grid_ts, this parameter interferes with generate()
+                # It is only used in specific scenarios; standard generate flow doesn't need it
                 if 'second_per_grid_ts' in current_prompt_inputs:
                     del current_prompt_inputs['second_per_grid_ts']
-                
+
                 try:
-                    completion = unwrapped_model.generate(**current_prompt_inputs, generation_config=temp_generation_config)
+                    completion = unwrapped_model.generate(**current_prompt_inputs,
+                                                          generation_config=temp_generation_config)
                     all_completions.append(completion)
-                    print(f"[Rank {self.accelerator.process_index}] Generation {i+1}/{num_generations} completed. Output shape: {completion.shape}")
+                    print(
+                        f"[Rank {self.accelerator.process_index}] Generation {i + 1}/{num_generations} completed. Output shape: {completion.shape}")
                 except Exception as e:
-                    print(f"[Rank {self.accelerator.process_index}] ❌ Generation {i+1}/{num_generations} FAILED: {e}")
+                    print(f"[Rank {self.accelerator.process_index}] ❌ Generation {i + 1}/{num_generations} FAILED: {e}")
                     raise
 
             # Stack all completions and pad if needed
@@ -839,47 +842,41 @@ class Qwen2VLGRPOTrainer(Trainer):
 
             # Stack all padded completions
             prompt_completion_ids = torch.cat(padded_completions, dim=0)
-            
-            # 释放不再需要的中间变量，降低后续显存压力
+
+            # Free up intermediate variables no longer needed to reduce VRAM pressure
             try:
                 del all_completions
                 del padded_completions
             except Exception:
                 pass
 
-            # 【关键修复】清理显存缓存,为shuffled generation释放空间
-            # 前面6次generation的中间激活值可能还占用显存,导致shuffled阶段OOM
+            # Clear CUDA cache to free space for shuffled generation
+            # Intermediate activations from previous generations might still occupy VRAM, causing OOM in shuffled phase
             torch.cuda.empty_cache()
-            
+
             prompt_length = prompt_ids.size(1)
             completion_ids = prompt_completion_ids[:, prompt_length:]
             prompt_mask = prompt_mask.repeat_interleave(self.num_generations, dim=0)
-            
+
             if self.temporal and not local_skip_generation:
-                
                 if video_inputs:
-            
-                    shuffled_prompt_completion_ids = unwrapped_model.generate(**shuffled_prompt_inputs, generation_config=self.shuffled_generation_config)
+                    shuffled_prompt_completion_ids = unwrapped_model.generate(**shuffled_prompt_inputs,
+                                                                              generation_config=self.shuffled_generation_config)
                     shuffled_prompt_length = shuffled_prompt_ids.size(1)
                     shuffled_prompt_ids = shuffled_prompt_completion_ids[:, :shuffled_prompt_length]
                     shuffled_completion_ids = shuffled_prompt_completion_ids[:, shuffled_prompt_length:]
                     shuffled_prompt_mask = prompt_mask.repeat_interleave(self.shuffled_num_generations, dim=0)
-                    
                 else:
-                    
-                    shuffled_prompt_completion_ids = unwrapped_model.generate(**prompt_inputs, generation_config=self.dummy_generation_config)
-            
-            # 【关键修复】shuffled generation完成后清理显存
+                    shuffled_prompt_completion_ids = unwrapped_model.generate(**prompt_inputs,
+                                                                              generation_config=self.dummy_generation_config)
+
+            # Clear CUDA cache after shuffled generation completes
             torch.cuda.empty_cache()
 
-        
-        print('path:', input_copy[0]['content'][0][inputs[0]['data_type']])   
-        print('problem_id:', inputs[0]['problem_id'])       
+        print('path:', input_copy[0]['content'][0][inputs[0]['data_type']])
+        print('problem_id:', inputs[0]['problem_id'])
         print('prompt_length:', prompt_length)
-                
-        
-        
-        
+
         # Mask everything after the first EOS token
         is_eos = completion_ids == self.processing_class.eos_token_id
         device = self.accelerator.device
@@ -888,37 +885,32 @@ class Qwen2VLGRPOTrainer(Trainer):
         sequence_indices = torch.arange(is_eos.size(1), device=device).expand(is_eos.size(0), -1)
         completion_mask = (sequence_indices <= eos_idx.unsqueeze(1)).int()
 
-        # Concatenate prompt_mask with completion_mask for logit computation
-        # attention_mask = torch.cat([prompt_mask, completion_mask], dim=1)  # (B*G, P+C)
-        # pixel_values = prompt_inputs["pixel_values"].repeat(self.num_generations, 1)
-        # image_grid_thw = prompt_inputs["image_grid_thw"].repeat_interleave(self.num_generations, dim=0)
-        
-
-        
-        # 【修复】准备logits计算的inputs
-        # 参考官方代码:使用repeat而不是repeat_interleave
-        # pixel_values已经是2D压平的patches,需要在dim=0上重复num_completions次
+        # Prepare inputs for logits computation
+        # Ref official code: use repeat instead of repeat_interleave
+        # pixel_values is already 2D flattened patches, needs to be repeated num_completions times on dim=0
         logits_inputs = {}
         num_completions = len(prompt_completion_ids)
 
-        # 生成完成后立即清理显存,为后续logprob计算腾出空间
+        # Clear CUDA cache immediately after generation to free space for subsequent logprob computation
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        # 本地logprob软跳过:仅在本rank上跳过昂贵logprob计算
+        # Local logprob soft skip: skip expensive logprob computation only on this rank
         local_skip_logprob = bool(inputs[0].get('data_type') == 'video' and prompt_length > self.video_logprob_skip_len)
         if local_skip_logprob:
-            print(f"⚠️ Local-skip logprob on Rank {self.accelerator.process_index}: prompt_len={prompt_length} > {self.video_logprob_skip_len}")
-        
+            print(
+                f"⚠️ Local-skip logprob on Rank {self.accelerator.process_index}: prompt_len={prompt_length} > {self.video_logprob_skip_len}")
+
         if inputs[0]['data_type'] == 'image':
-            # 图像:按照官方方式repeat
+            # Image: repeat according to official method
             logits_inputs["pixel_values"] = original_prompt_inputs_full["pixel_values"].repeat(num_completions, 1)
             logits_inputs["image_grid_thw"] = original_prompt_inputs_full["image_grid_thw"].repeat(num_completions, 1)
         elif inputs[0]['data_type'] == 'video':
-            # 视频:按照官方方式repeat
-            logits_inputs["pixel_values_videos"] = original_prompt_inputs_full["pixel_values_videos"].repeat(num_completions, 1)
+            # Video: repeat according to official method
+            logits_inputs["pixel_values_videos"] = original_prompt_inputs_full["pixel_values_videos"].repeat(
+                num_completions, 1)
             logits_inputs["video_grid_thw"] = original_prompt_inputs_full["video_grid_thw"].repeat(num_completions, 1)
-            # 删除second_per_grid_ts(官方代码也是这样处理)
+            # Delete second_per_grid_ts (official code does the same)
 
         # Consensus-frame rewards placeholder
         r_cov_rewards = torch.zeros(self.num_generations, device=device)
@@ -927,7 +919,8 @@ class Qwen2VLGRPOTrainer(Trainer):
 
         try:
             if local_skip_logprob:
-                per_token_logps = torch.zeros((num_completions, completion_mask.size(1)), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
+                per_token_logps = torch.zeros((num_completions, completion_mask.size(1)),
+                                              device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
             elif is_video_task:
                 outputs = model(
                     input_ids=prompt_completion_ids,
@@ -939,7 +932,7 @@ class Qwen2VLGRPOTrainer(Trainer):
 
                 logits = outputs.logits[:, :-1, :]
                 per_token_logps = get_per_token_logps_from_logits(logits, prompt_completion_ids[:, 1:])
-                per_token_logps = per_token_logps[:, prompt_length - 1 :]
+                per_token_logps = per_token_logps[:, prompt_length - 1:]
 
                 last_hidden = outputs.hidden_states[-1]
                 _, p_prior = build_consensus_prior(inputs[0].get('frame_sets', {}), device)
@@ -962,8 +955,10 @@ class Qwen2VLGRPOTrainer(Trainer):
                                     r_cov_rewards[i] = (p_prior * alpha).sum()
 
                 try:
-                    print(f"[Rank {self.accelerator.process_index}] 🔍 Model logps: min={per_token_logps.min().item():.6f}, max={per_token_logps.max().item():.6f}, mean={per_token_logps.mean().item():.6f}, requires_grad={per_token_logps.requires_grad}")
-                    print(f"[Rank {self.accelerator.process_index}] R_cov rewards: {[round(x.item(), 4) for x in r_cov_rewards]}")
+                    print(
+                        f"[Rank {self.accelerator.process_index}] 🔍 Model logps: min={per_token_logps.min().item():.6f}, max={per_token_logps.max().item():.6f}, mean={per_token_logps.mean().item():.6f}, requires_grad={per_token_logps.requires_grad}")
+                    print(
+                        f"[Rank {self.accelerator.process_index}] R_cov rewards: {[round(x.item(), 4) for x in r_cov_rewards]}")
                 except Exception:
                     pass
 
@@ -971,77 +966,89 @@ class Qwen2VLGRPOTrainer(Trainer):
                 if torch.cuda.is_available():
                     torch.cuda.synchronize()
                 t0 = time.time()
-                print(f"[Rank {self.accelerator.process_index}] Logprob(model) start: bs={num_completions}, seq={prompt_completion_ids.size(1)}")
+                print(
+                    f"[Rank {self.accelerator.process_index}] Logprob(model) start: bs={num_completions}, seq={prompt_completion_ids.size(1)}")
                 per_token_logps = self._get_per_token_logps(model, prompt_completion_ids, **logits_inputs)
-                per_token_logps = per_token_logps[:, prompt_length - 1 :]
-                print(f"[Rank {self.accelerator.process_index}] 🔍 Model logps: min={per_token_logps.min().item():.6f}, max={per_token_logps.max().item():.6f}, mean={per_token_logps.mean().item():.6f}, requires_grad={per_token_logps.requires_grad}")
+                per_token_logps = per_token_logps[:, prompt_length - 1:]
+                print(
+                    f"[Rank {self.accelerator.process_index}] 🔍 Model logps: min={per_token_logps.min().item():.6f}, max={per_token_logps.max().item():.6f}, mean={per_token_logps.mean().item():.6f}, requires_grad={per_token_logps.requires_grad}")
                 if torch.cuda.is_available():
                     torch.cuda.synchronize()
                 dt = time.time() - t0
                 try:
-                    mem_alloc = torch.cuda.memory_allocated() / (1024**3)
-                    mem_rsrv = torch.cuda.memory_reserved() / (1024**3)
-                    print(f"[Rank {self.accelerator.process_index}] Logprob(model) done in {dt:.2f}s | mem {mem_alloc:.2f}G/{mem_rsrv:.2f}G")
+                    mem_alloc = torch.cuda.memory_allocated() / (1024 ** 3)
+                    mem_rsrv = torch.cuda.memory_reserved() / (1024 ** 3)
+                    print(
+                        f"[Rank {self.accelerator.process_index}] Logprob(model) done in {dt:.2f}s | mem {mem_alloc:.2f}G/{mem_rsrv:.2f}G")
                 except Exception:
                     print(f"[Rank {self.accelerator.process_index}] Logprob(model) done in {dt:.2f}s")
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
         except Exception as e:
             print(f"Error computing per_token_logps: {e}. Retrying with zero fallback.")
-            per_token_logps = torch.zeros((num_completions, completion_mask.size(1)), device=self.accelerator.device, dtype=torch.bfloat16, requires_grad=True)
+            per_token_logps = torch.zeros((num_completions, completion_mask.size(1)), device=self.accelerator.device,
+                                          dtype=torch.bfloat16, requires_grad=True)
             r_cov_rewards = torch.zeros(self.num_generations, device=device)
         finally:
             if 'outputs' in locals():
                 del outputs
-        
+
         with torch.inference_mode():
             try:
                 if local_skip_logprob:
-                    ref_per_token_logps = torch.zeros((num_completions, completion_mask.size(1)), device=self.accelerator.device, dtype=torch.bfloat16)
+                    ref_per_token_logps = torch.zeros((num_completions, completion_mask.size(1)),
+                                                      device=self.accelerator.device, dtype=torch.bfloat16)
                 else:
-                    # 在ref模型前向传播前清理显存,避免OOM
+                    # Clear CUDA cache before ref model forward pass to avoid OOM
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
                         torch.cuda.synchronize()
                     t1 = time.time()
-                    print(f"[Rank {self.accelerator.process_index}] Logprob(ref) start: bs={num_completions}, seq={prompt_completion_ids.size(1)}")
+                    print(
+                        f"[Rank {self.accelerator.process_index}] Logprob(ref) start: bs={num_completions}, seq={prompt_completion_ids.size(1)}")
                     if self.ref_model is not None:
-                        ref_per_token_logps = self._get_per_token_logps(self.ref_model, prompt_completion_ids, **logits_inputs)
+                        ref_per_token_logps = self._get_per_token_logps(self.ref_model, prompt_completion_ids,
+                                                                        **logits_inputs)
                     else:
                         with self.accelerator.unwrap_model(model).disable_adapter():
-                            ref_per_token_logps = self._get_per_token_logps(model, prompt_completion_ids, **logits_inputs)
-                    ref_per_token_logps = ref_per_token_logps[:, prompt_length - 1 :]
-                    print(f"[Rank {self.accelerator.process_index}] 🔍 Ref logps: min={ref_per_token_logps.min().item():.6f}, max={ref_per_token_logps.max().item():.6f}, mean={ref_per_token_logps.mean().item():.6f}")
+                            ref_per_token_logps = self._get_per_token_logps(model, prompt_completion_ids,
+                                                                            **logits_inputs)
+                    ref_per_token_logps = ref_per_token_logps[:, prompt_length - 1:]
+                    print(
+                        f"[Rank {self.accelerator.process_index}] 🔍 Ref logps: min={ref_per_token_logps.min().item():.6f}, max={ref_per_token_logps.max().item():.6f}, mean={ref_per_token_logps.mean().item():.6f}")
                     if torch.cuda.is_available():
                         torch.cuda.synchronize()
                     dt1 = time.time() - t1
                     try:
-                        mem_alloc = torch.cuda.memory_allocated() / (1024**3)
-                        mem_rsrv = torch.cuda.memory_reserved() / (1024**3)
-                        print(f"[Rank {self.accelerator.process_index}] Logprob(ref) done in {dt1:.2f}s | mem {mem_alloc:.2f}G/{mem_rsrv:.2f}G")
+                        mem_alloc = torch.cuda.memory_allocated() / (1024 ** 3)
+                        mem_rsrv = torch.cuda.memory_reserved() / (1024 ** 3)
+                        print(
+                            f"[Rank {self.accelerator.process_index}] Logprob(ref) done in {dt1:.2f}s | mem {mem_alloc:.2f}G/{mem_rsrv:.2f}G")
                     except Exception:
                         print(f"[Rank {self.accelerator.process_index}] Logprob(ref) done in {dt1:.2f}s")
             except Exception as e:
                 print(f"Error computing ref_per_token_logps: {e}. Using zero fallback.")
-                ref_per_token_logps = torch.zeros((num_completions, completion_mask.size(1)), device=self.accelerator.device, dtype=torch.bfloat16)
+                ref_per_token_logps = torch.zeros((num_completions, completion_mask.size(1)),
+                                                  device=self.accelerator.device, dtype=torch.bfloat16)
 
         # Compute the KL divergence between the model and the reference model
-        
-        x_clamped = torch.clamp(ref_per_token_logps - per_token_logps, min=-10, max=10)  # 限制 x 的范围
+        # Limit the range of x
+        x_clamped = torch.clamp(ref_per_token_logps - per_token_logps, min=-10, max=10)
         per_token_kl = torch.exp(x_clamped) - x_clamped - 1
-        
-        # 初始化shuffled_rewards_per_func为None,仅在需要时计算
+
+        # Initialize shuffled_rewards_per_func to None, compute only when needed
         shuffled_rewards_per_func = None
         if self.temporal and video_inputs and not local_skip_generation:
             shuffled_completions = self.processing_class.batch_decode(shuffled_completion_ids, skip_special_tokens=True)
             if is_conversational(inputs[0]):
-                shuffled_completions = [[{"role": "assistant", "content": shuffled_completion}] for shuffled_completion in shuffled_completions]
-                
+                shuffled_completions = [[{"role": "assistant", "content": shuffled_completion}] for shuffled_completion
+                                        in shuffled_completions]
+
             # Compute the rewards
             shuffled_prompts = [prompt for prompt in prompts for _ in range(self.shuffled_num_generations)]
             shuffled_rewards_per_func = torch.zeros(len(shuffled_prompts), len(self.reward_funcs), device=device)
             for i, (reward_func, reward_processing_class) in enumerate(
-                zip(self.reward_funcs, self.reward_processing_classes)
+                    zip(self.reward_funcs, self.reward_processing_classes)
             ):
                 # Repeat all input columns (but "prompt" and "completion") to match the number of generations
                 shuffled_reward_kwargs = {key: [] for key in inputs[0].keys() if key not in ["prompt", "completion"]}
@@ -1049,20 +1056,21 @@ class Qwen2VLGRPOTrainer(Trainer):
                     for example in inputs:
                         # Repeat each value in the column for `num_generations` times
                         shuffled_reward_kwargs[key].extend([example[key]] * self.shuffled_num_generations)
-                shuffled_output_reward_func = reward_func(prompts=shuffled_prompts, completions=shuffled_completions, **shuffled_reward_kwargs)
-                shuffled_rewards_per_func[:, i] = torch.tensor(shuffled_output_reward_func, dtype=torch.float32, device=device)
+                shuffled_output_reward_func = reward_func(prompts=shuffled_prompts, completions=shuffled_completions,
+                                                          **shuffled_reward_kwargs)
+                shuffled_rewards_per_func[:, i] = torch.tensor(shuffled_output_reward_func, dtype=torch.float32,
+                                                               device=device)
 
-        
         # Decode the generated completions
         completions = self.processing_class.batch_decode(completion_ids, skip_special_tokens=True)
         if is_conversational(inputs[0]):
             completions = [[{"role": "assistant", "content": completion}] for completion in completions]
-            
+
         # Compute the rewards
         prompts = [prompt for prompt in prompts for _ in range(self.num_generations)]
         rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
         for i, (reward_func, reward_processing_class) in enumerate(
-            zip(self.reward_funcs, self.reward_processing_classes)
+                zip(self.reward_funcs, self.reward_processing_classes)
         ):
             # Repeat all input columns (but "prompt" and "completion") to match the number of generations
             reward_kwargs = {key: [] for key in inputs[0].keys() if key not in ["prompt", "completion"]}
@@ -1072,14 +1080,11 @@ class Qwen2VLGRPOTrainer(Trainer):
                     reward_kwargs[key].extend([example[key]] * self.num_generations)
             output_reward_func = reward_func(prompts=prompts, completions=completions, **reward_kwargs)
             rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
-        
 
-        
-        
-        # 初始化temporal_rewards,所有rank都需要参与gather以保持分布式通信一致
+        # Initialize temporal_rewards, all ranks must participate in gather to keep distributed communication consistent
         if self.temporal and video_inputs and not local_skip_generation and shuffled_rewards_per_func is not None:
             temporal_rewards_per_func = rewards_per_func.clone()
-            
+
             acc_mean = temporal_rewards_per_func[:, 0].mean()
             shuffled_acc_mean = shuffled_rewards_per_func[:, 0].mean()
 
@@ -1091,13 +1096,14 @@ class Qwen2VLGRPOTrainer(Trainer):
                 temporal_rewards = torch.tensor([0.0]).to('cuda')
         else:
             temporal_rewards = torch.tensor([0.0]).to('cuda')
-        
-        # 所有rank统一进行gather,确保分布式通信一致
+
+        # Uniformly gather across all ranks to ensure distributed communication consistency
         temporal_rewards_list = self.accelerator.gather_for_metrics(temporal_rewards)
-        
+
         # Compose total reward as R_total = R_acc + R_length + R_format
         # R_acc is assumed to be the first reward function, R_format the second (if provided)
-        R_acc = rewards_per_func[:, 0] if rewards_per_func.size(1) >= 1 else torch.zeros(rewards_per_func.size(0), device=device)
+        R_acc = rewards_per_func[:, 0] if rewards_per_func.size(1) >= 1 else torch.zeros(rewards_per_func.size(0),
+                                                                                         device=device)
         R_format = rewards_per_func[:, 1] if rewards_per_func.size(1) >= 2 else torch.zeros_like(R_acc)
 
         if self.temporal and video_inputs and not local_skip_generation and shuffled_rewards_per_func is not None:
@@ -1159,27 +1165,23 @@ class Qwen2VLGRPOTrainer(Trainer):
         mean_grouped_rewards = mean_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
         std_grouped_rewards = std_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
         advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
-        
-        # if self.len_control and len(selected_indices) == self.num_generations:
-        #     for idx in range(len(rewards)):
-        #         advantages[idx] += (mem_rewards[idx] - 0.2) * 2
 
-        # 调试打印: 检查per_token_logps的值
-        print(f"[Rank {self.accelerator.process_index}] per_token_logps stats: min={per_token_logps.min().item():.6f}, max={per_token_logps.max().item():.6f}, mean={per_token_logps.mean().item():.6f}")
-        print(f"[Rank {self.accelerator.process_index}] ref_per_token_logps stats: min={ref_per_token_logps.min().item():.6f}, max={ref_per_token_logps.max().item():.6f}, mean={ref_per_token_logps.mean().item():.6f}")
-        print(f"[Rank {self.accelerator.process_index}] advantages stats: min={advantages.min().item():.6f}, max={advantages.max().item():.6f}, mean={advantages.mean().item():.6f}")
-        
+        # Debug print: check per_token_logps values
+        print(
+            f"[Rank {self.accelerator.process_index}] per_token_logps stats: min={per_token_logps.min().item():.6f}, max={per_token_logps.max().item():.6f}, mean={per_token_logps.mean().item():.6f}")
+        print(
+            f"[Rank {self.accelerator.process_index}] ref_per_token_logps stats: min={ref_per_token_logps.min().item():.6f}, max={ref_per_token_logps.max().item():.6f}, mean={ref_per_token_logps.mean().item():.6f}")
+        print(
+            f"[Rank {self.accelerator.process_index}] advantages stats: min={advantages.min().item():.6f}, max={advantages.max().item():.6f}, mean={advantages.mean().item():.6f}")
+
         # x - x.detach() allows for preserving gradients from x
         per_token_loss = torch.exp(per_token_logps - per_token_logps.detach()) * advantages.unsqueeze(1)
         per_token_loss = -(per_token_loss - self.beta * per_token_kl)
         # per_token_loss = -per_token_loss
         loss = ((per_token_loss * completion_mask).sum(dim=1) / completion_mask.sum(dim=1)).mean()
-        
-        print(f"[Rank {self.accelerator.process_index}] loss value: {loss.item():.6f}, requires_grad={loss.requires_grad}")
-       
-            
-        # import pdb
-        # pdb.set_trace()
+
+        print(
+            f"[Rank {self.accelerator.process_index}] loss value: {loss.item():.6f}, requires_grad={loss.requires_grad}")
 
         # Log the metrics
         completion_length = self.accelerator.gather_for_metrics(completion_mask.sum(1)).float().mean().item()
@@ -1192,23 +1194,23 @@ class Qwen2VLGRPOTrainer(Trainer):
             else:
                 reward_func_name = reward_func.__name__
             self._metrics[f"rewards/{reward_func_name}"].append(reward_per_func[i].item())
-        
+
         gathered_rewards = self.accelerator.gather_for_metrics(rewards)
-        
-        num_devices = gathered_rewards.size(0) // self.num_generations 
+
+        num_devices = gathered_rewards.size(0) // self.num_generations
         rewards_per_device = gathered_rewards.view(num_devices, self.num_generations)
         wrong_devices = (rewards_per_device <= 1).all(dim=1)
         wrong_ratio = wrong_devices.sum().item() / num_devices
-        
+
         correct_devices = (rewards_per_device >= 2).all(dim=1)
         correct_ratio = correct_devices.sum().item() / num_devices
-        
+
         self._metrics["all_wrong"].append(wrong_ratio)
         self._metrics["all_correct"].append(correct_ratio)
-        
+
         if temporal_rewards_list is not None:
             self._metrics["temporal_rewards"].append(temporal_rewards_list.mean().item())
-        
+
         self._metrics["reward"].append(self.accelerator.gather_for_metrics(rewards).mean().item())
 
         self._metrics["reward_std"].append(self.accelerator.gather_for_metrics(std_grouped_rewards).mean().item())
@@ -1223,48 +1225,48 @@ class Qwen2VLGRPOTrainer(Trainer):
         mean_kl = ((per_token_kl * completion_mask).sum(dim=1) / completion_mask.sum(dim=1)).mean()
         mean_kl_value = self.accelerator.gather_for_metrics(mean_kl).mean().item()
         self._metrics["kl"].append(mean_kl_value)
-        
-        # 在所有进程上进行gather操作(必须在所有进程上调用以保持分布式通信一致)
+
+        # Perform gather operation on all processes (must be called on all processes to maintain distributed communication consistency)
         reward_mean = self.accelerator.gather_for_metrics(rewards).mean().item()
         reward_std_mean = self.accelerator.gather_for_metrics(std_grouped_rewards).mean().item()
-        
-        # 📊 打印每个step的详细指标(当前step的真实值,非累积平均)
+
+        # 📊 Print detailed metrics for each step (true values of current step, not cumulative average)
         if self.accelerator.is_main_process:
             print("=" * 80)
             print("📊 [STEP METRICS - Current Step Only]")
             print(f"   completion_length: {completion_length:.4f}")
-            
-            # 打印各个reward函数的分数
+
+            # Print scores for each reward function
             for i, reward_func in enumerate(self.reward_funcs):
                 if isinstance(reward_func, PreTrainedModel):
                     reward_func_name = reward_func.config._name_or_path.split("/")[-1]
                 else:
                     reward_func_name = reward_func.__name__
                 print(f"   rewards/{reward_func_name}: {reward_per_func[i].item():.4f}")
-            
-            # 打印统计指标
+
+            # Print statistical metrics
             print(f"   all_wrong: {wrong_ratio:.4f}")
             print(f"   all_correct: {correct_ratio:.4f}")
-            
-            # 打印temporal rewards (如果启用)
+
+            # Print temporal rewards (if enabled)
             if temporal_rewards_list is not None:
                 temporal_reward_mean = temporal_rewards_list.mean().item()
                 print(f"   temporal_rewards: {temporal_reward_mean:.4f}")
-            
+
             # Consensus-frame metrics
             try:
                 cov_bonus_total = sum(b for _, b in cov_applied) if cov_applied else 0.0
-                print(f"   r_cov_mean: {global_r_cov_mean:.4f} | r_cov_max: {global_r_cov_max:.4f} | cov_bonus_total (local rank): {cov_bonus_total:.4f}")
+                print(
+                    f"   r_cov_mean: {global_r_cov_mean:.4f} | r_cov_max: {global_r_cov_max:.4f} | cov_bonus_total (local rank): {cov_bonus_total:.4f}")
             except Exception:
                 print("   r_cov_mean: N/A")
-            
-            # 打印总奖励和方差(使用之前gather的结果)
+
+            # Print total reward and variance (using results from previous gather)
             print(f"   reward: {reward_mean:.4f}")
             print(f"   reward_std: {reward_std_mean:.4f}")
             print(f"   kl: {mean_kl_value:.6f}")
             print(f"   loss: {loss.item():.6f}")
             print("=" * 80)
-        
 
         return loss
 
@@ -1283,10 +1285,10 @@ class Qwen2VLGRPOTrainer(Trainer):
         self._metrics.clear()
 
     def create_model_card(
-        self,
-        model_name: Optional[str] = None,
-        dataset_name: Optional[str] = None,
-        tags: Union[str, list[str], None] = None,
+            self,
+            model_name: Optional[str] = None,
+            dataset_name: Optional[str] = None,
+            tags: Union[str, list[str], None] = None,
     ):
         """
         Creates a draft of a model card using the information available to the `Trainer`.
