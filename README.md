@@ -48,11 +48,14 @@ The reward favors agreement between these distributions while keeping standard a
 
 The table below summarizes the reported VideoCFR results from the current manuscript draft. Results are accuracy (%). Comparisons should be interpreted under the evaluation settings and frame budgets reported by the corresponding methods.
 
-| Model | Frames | VSI-Bench | VideoMMMU | MMVU(mc) | MVBench | TempCompass | VideoMME(wo sub) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| VideoCFR | 16 | 31.8 | 50.5 | 66.4 | 66.1 | 70.8 | 55.1 |
-| VideoCFR | 32 | 33.1 | 52.4 | 65.9 | 64.5 | 72.8 | 58.9 |
-| VideoCFR | 64 | 34.8 | 50.6 | 66.7 | 63.9 | 72.9 | 61.1 |
+| Benchmark | 16 frames | 32 frames | 64 frames |
+| --- | ---: | ---: | ---: |
+| VSI-Bench | 31.8 | 33.1 | 34.8 |
+| VideoMMMU | 50.5 | 52.4 | 50.6 |
+| MMVU(mc) | 66.4 | 65.9 | 66.7 |
+| MVBench | 66.1 | 64.5 | 63.9 |
+| TempCompass | 70.8 | 72.8 | 72.9 |
+| VideoMME(wo sub) | 55.1 | 58.9 | 61.1 |
 
 Increasing the frame budget improves several benchmarks, while the effect remains benchmark-dependent. Ablations in the paper indicate that the consensus prior, sparse aggregation, and distribution sharpening each contribute to the final performance.
 
