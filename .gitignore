@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# Local environments
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# Editors and OS files
+.DS_Store
+.idea/
+.vscode/
+
+# Training and evaluation artifacts
+wandb/
+logs/
+log/
+debug_log*.txt
+vllm_run.txt
+training_log.txt
+*.log
+*.out
+*.err
+
+# Large model and data files
+checkpoints/
+models/
+outputs/
+data/
+datasets/
+CFR/r1-v/Video-R1-data/
+CFR/r1-v/log/
+CFR/r1-v/checkpoints/
+CFR/r1-v/models/
+CFR/r1-v/outputs/
+CFR/r1-v/eval_results/*.json
+!CFR/r1-v/eval_results/empty.json
+
+# Media dumps and archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt

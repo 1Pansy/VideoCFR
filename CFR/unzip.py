@@ -1,5 +1,7 @@
 import os
 import zipfile
+import argparse
+from pathlib import Path
 
 def extract_zip_files(root_dir):
     """
@@ -20,5 +22,8 @@ def extract_zip_files(root_dir):
                     print(f"Failed to extract {zip_path}: {e}")
 
 if __name__ == '__main__':
-    root_directory = "./src/r1-v/Video-R1-data"
-    extract_zip_files(root_directory)
+    default_root = Path(__file__).resolve().parent / "r1-v" / "Video-R1-data"
+    parser = argparse.ArgumentParser(description="Extract zip files under a data directory.")
+    parser.add_argument("--root", default=str(default_root), help="Root directory to scan for zip files.")
+    args = parser.parse_args()
+    extract_zip_files(args.root)

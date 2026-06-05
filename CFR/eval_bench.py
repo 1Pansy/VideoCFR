@@ -1,6 +1,7 @@
 import os
 import json
 import re
+from pathlib import Path
 from tqdm import tqdm
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from rouge_score import rouge_scorer
@@ -18,10 +19,19 @@ BSZ = 64
 parser = argparse.ArgumentParser(description="Evaluation benchmark")
 parser.add_argument('--model_path', type=str, required=True, help="Path to the model")
 parser.add_argument('--file_name', type=str, required=True, help="Name of the file")
+parser.add_argument(
+    '--datasets',
+    nargs='+',
+    default=['mvbench', 'tempcompass', 'videomme', 'videommmu', 'vsibench', 'mmvu'],
+    help="Dataset names to evaluate. Each expects CFR/r1-v/Evaluation/eval_<name>.json.",
+)
 args = parser.parse_args()
 
 MODEL_PATH = args.model_path
 file_name = args.file_name
+CFR_DIR = Path(__file__).resolve().parent
+R1V_DIR = CFR_DIR / "r1-v"
+DATA_DIR = R1V_DIR / "Video-R1-data"
 
 
 
@@ -48,17 +58,27 @@ tokenizer.padding_side = "left"
 processor.tokenizer = tokenizer
 
 
-for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','mmvu']:
+def with_webm_fallback(path):
+    if path.exists() or path.suffix.lower() != ".mp4":
+        return path
+    webm_path = path.with_suffix(".webm")
+    if webm_path.exists():
+        return webm_path
+    return path
 
-    OUTPUT_PATH = f"./src/r1-v/eval_results/eval_{dataset_name}_{file_name}_greedy_output.json"
-    PROMPT_PATH = f"./src/r1-v/Evaluation/eval_{dataset_name}.json"
+
+for dataset_name in args.datasets:
+
+    OUTPUT_PATH = R1V_DIR / "eval_results" / f"eval_{dataset_name}_{file_name}_greedy_output.json"
+    PROMPT_PATH = R1V_DIR / "Evaluation" / f"eval_{dataset_name}.json"
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     data = []
-    
-    if PROMPT_PATH.endswith('.jsonl'):
+
+    if str(PROMPT_PATH).endswith('.jsonl'):
         with open(PROMPT_PATH, "r", encoding="utf-8") as f:
             for line in f:
                 data.append(json.loads(line))
-    elif PROMPT_PATH.endswith('.json'):
+    elif str(PROMPT_PATH).endswith('.json'):
         with open(PROMPT_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
     else:
@@ -87,35 +107,25 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
         total_samples += 1
         rel_path = x['path'].lstrip('./')
 
-        full_path = os.path.join(os.getcwd(), 'src', 'r1-v', rel_path)
+        candidates = [
+            R1V_DIR / rel_path,
+            DATA_DIR / rel_path,
+            CFR_DIR / rel_path,
+            Path.cwd() / rel_path,
+        ]
+        full_path = None
+        for candidate in candidates:
+            candidate = with_webm_fallback(candidate)
+            if candidate.exists():
+                full_path = candidate
+                break
 
-        tried = [full_path]
-
-        if not os.path.exists(full_path) and full_path.endswith('.mp4'):
-            webm_path = full_path[:-4] + '.webm'
-            tried.append(webm_path)
-            if os.path.exists(webm_path):
-                full_path = webm_path
-
-
-        if not os.path.exists(full_path):
-            alt = os.path.join(os.getcwd(), rel_path)
-            tried.append(alt)
-            if os.path.exists(alt):
-                full_path = alt
-            else:
-                # 额外尝试 alt 的 .webm
-                if alt.endswith('.mp4'):
-                    alt_webm = alt[:-4] + '.webm'
-                    tried.append(alt_webm)
-                    if os.path.exists(alt_webm):
-                        full_path = alt_webm
-
-        if not os.path.exists(full_path):
-            print(f"[WARN] Missing {x.get('data_type','video')} file: {full_path} (skip)")
+        if full_path is None:
+            print(f"[WARN] Missing {x.get('data_type','video')} file: {candidates[0]} (skip)")
             skipped_missing += 1
             continue
 
+        full_path = str(full_path)
         x['abs_path'] = full_path
         if x["problem_type"] == 'multiple choice':
             question = x['problem'] + "Options:\n" + "\n".join(x["options"])
@@ -131,14 +141,14 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
             }
         ])
         sample_refs.append(x)
-    
+
     if skipped_missing > 0:
         print(f"[INFO] Dataset {dataset_name}: skipped {skipped_missing}/{total_samples} missing-file samples.")
-        
+
 
     final_output = []
     start_idx = 0
-    if os.path.exists(OUTPUT_PATH):
+    if OUTPUT_PATH.exists():
         try:
             with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
                 existing = json.load(f)
@@ -169,21 +179,21 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
             return float(num_str)
         except Exception as e:
             return None
-        
+
     def mean_relative_accuracy(pred, target, start=0.5, end=0.95, interval=0.05):
 
         if not torch.is_tensor(pred):
             pred = torch.tensor(pred, dtype=torch.float32)
         if not torch.is_tensor(target):
             target = torch.tensor(target, dtype=torch.float32)
-        
+
         epsilon = 1e-8
         rel_error = torch.abs(pred - target) / (torch.abs(target) + epsilon)
-        
+
         thresholds = torch.arange(start, end + interval/2, interval, dtype=torch.float32)
-        
-        conditions = rel_error < (1 - thresholds)  
-        mra = conditions.float().mean()  
+
+        conditions = rel_error < (1 - thresholds)
+        mra = conditions.float().mean()
         return mra.item()
 
 
@@ -223,7 +233,7 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
         batch_messages = messages[i:i + BSZ]
 
         prompts = [processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True) for msg in batch_messages]
-        
+
         batch_output_text = []
         try:
             image_inputs, video_inputs, video_kwargs = process_vision_info(batch_messages, return_video_kwargs=True)
@@ -236,7 +246,7 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
             image_idx = 0
             video_idx = 0
             llm_inputs = []
-            
+
             if image_inputs is None:
                 image_inputs = []
             if video_inputs is None:
@@ -259,20 +269,20 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
                         print(f"[WARN] No mm data available for sample {i+idx} (type={mm_type})")
                 except Exception as e:
                     print(f"[WARN] Failed to attach mm data for sample {i+idx}: {e}")
-                
+
                 llm_inputs.append({
                     "prompt": prompt,
                     "multi_modal_data": sample_mm_data,
                     "mm_processor_kwargs": sample_video_kw,
                 })
-                
+
             try:
                 outputs = llm.generate(llm_inputs, sampling_params=sampling_params)
                 batch_output_text = [out.outputs[0].text for out in outputs]
             except Exception as e:
                 print(f"[ERROR] Generation failed for batch starting {i}: {e}")
                 batch_output_text = ['<answer>error</answer>'] * len(batch_messages)
-            
+
         original_batch_samples = sample_refs[i:i+len(batch_messages)]
         for j, (sample, model_output) in enumerate(zip(original_batch_samples, batch_output_text), start=i):
             think_chain = extract_think(model_output)
@@ -291,7 +301,7 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
             if think_chain:
                 sample["process"] = f"<think>{think_chain}</think>"
             final_output.append(sample)
-        
+
 
         try:
             with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
@@ -301,15 +311,16 @@ for dataset_name in ['mvbench','tempcompass','videomme','videommmu','vsibench','
             print(f"Error writing to output file: {e}")
 
     final_acc={'mean_acc': 0.0, 'mean_mra': 0.0}
-    final_acc['mean_acc'] = torch.tensor(mean_acc).mean().item()
+    if mean_acc:
+        final_acc['mean_acc'] = torch.tensor(mean_acc).mean().item()
     if mean_mra != []:
         final_acc['mean_mra'] = torch.tensor(mean_mra).mean().item()
-    
+
     try:
         with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
             json.dump({"results": final_output, "final_acc": [final_acc]}, f, indent=2, ensure_ascii=False)
         print(f"Final accuracy saved to {OUTPUT_PATH}")
     except Exception as e:
         print(f"Error writing final accuracy to output file: {e}")
-    
+
     print(f"Results saved to {OUTPUT_PATH}")

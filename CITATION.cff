@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use VideoCFR, please cite the project. Full publication metadata will be updated after release."
+title: "Reasoning as Intersection: VideoCFR for Visual Focus Alignment in Video-MLLMs"
+type: software
+authors:
+  - family-names: Liu
+    given-names: Chengwen
+  - family-names: Chang
+    given-names: Zhuoyue
+  - family-names: Peng
+    given-names: Hao
+  - family-names: Dang
+    given-names: Jisheng
+  - family-names: Peng
+    given-names: Hong
+  - family-names: Wang
+    given-names: Huacan
+  - family-names: Chen
+    given-names: Ronghao
+  - family-names: Huang
+    given-names: Zhe
+  - family-names: Cai
+    given-names: Hanshu
+  - family-names: Hu
+    given-names: Bin
+  - family-names: Chua
+    given-names: Tat-Seng
+repository-code: "https://github.com/1Pansy/VideoCFR"
+license: Apache-2.0
+keywords:
+  - video reasoning
+  - multimodal large language models
+  - reinforcement learning
+  - process-level reward
+  - evidence alignment

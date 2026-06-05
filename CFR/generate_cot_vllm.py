@@ -1,6 +1,8 @@
 import os
 import json
 import re
+import argparse
+from pathlib import Path
 from tqdm import tqdm
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from rouge_score import rouge_scorer
@@ -11,8 +13,17 @@ from vllm import LLM, SamplingParams
 from qwen_vl_utils import process_vision_info
 
 
-MODEL_PATH = "Qwen/Qwen2.5-VL-72B-Instruct"
-BSZ = 32
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "r1-v" / "Video-R1-data"
+
+parser = argparse.ArgumentParser(description="Generate CoT data with a Qwen2.5-VL teacher model.")
+parser.add_argument("--model_path", default="Qwen/Qwen2.5-VL-72B-Instruct")
+parser.add_argument("--datasets", nargs="+", default=["your_data_name"])
+parser.add_argument("--batch_size", type=int, default=32)
+args = parser.parse_args()
+
+MODEL_PATH = args.model_path
+BSZ = args.batch_size
 
 
 llm = LLM(
@@ -36,17 +47,18 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 tokenizer.padding_side = "left"
 processor.tokenizer = tokenizer
 
-for dataset_name in ['your_data_name']:
+for dataset_name in args.datasets:
 
-    OUTPUT_PATH = f"./src/r1-v/Video-R1-data/{dataset_name}_COT_qwen72b.json"
-    PROMPT_PATH = f"./src/r1-v/Video-R1-data/{dataset_name}.json"
-    
+    OUTPUT_PATH = DATA_DIR / f"{dataset_name}_COT_qwen72b.json"
+    PROMPT_PATH = DATA_DIR / f"{dataset_name}.json"
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
     data = []
-    if PROMPT_PATH.endswith('.jsonl'):
+    if str(PROMPT_PATH).endswith('.jsonl'):
         with open(PROMPT_PATH, "r", encoding="utf-8") as f:
             for line in f:
                 data.append(json.loads(line))
-    elif PROMPT_PATH.endswith('.json'):
+    elif str(PROMPT_PATH).endswith('.json'):
         with open(PROMPT_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
     else:
@@ -84,7 +96,7 @@ for dataset_name in ['your_data_name']:
             "content": [
                 {
                     "type": x['data_type'],
-                    x['data_type']: os.getcwd() + "/src/r1-v/Video-R1-data" + x['path'][1:]
+                    x['data_type']: str(DATA_DIR / x['path'].lstrip('./'))
                 },
                 {
                     "type": "text",
@@ -93,11 +105,11 @@ for dataset_name in ['your_data_name']:
             ]
         }]
         messages.append(msg)
-        
+
     # For resume
     final_output = []
     start_idx = 0
-    if os.path.exists(OUTPUT_PATH):
+    if OUTPUT_PATH.exists():
         try:
             with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
                 existing = json.load(f)
@@ -206,16 +218,16 @@ for dataset_name in ['your_data_name']:
         batch_messages = messages[i:i + BSZ]
 
         prompts = [processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True) for msg in batch_messages]
-        
+
         try:
             image_inputs, video_inputs, video_kwargs = process_vision_info(batch_messages, return_video_kwargs=True)
-            
+
             image_idx = 0
             video_idx = 0
 
             llm_inputs = []
 
-            
+
             for idx, prompt in enumerate(prompts):
                 mm_type = batch_messages[idx][0]['content'][0]['type']
                 sample_mm_data = {}
@@ -228,22 +240,22 @@ for dataset_name in ['your_data_name']:
                     for key, value in video_kwargs.items():
                         sample_video_kw[key] = value[video_idx]
                     video_idx += 1
-                        
-                
+
+
                 llm_inputs.append({
                     "prompt": prompt,
                     "multi_modal_data": sample_mm_data,
                     "mm_processor_kwargs": sample_video_kw,
                 })
-                
+
 
             outputs = llm.generate(llm_inputs, sampling_params=sampling_params)
             batch_output_text = [out.outputs[0].text for out in outputs]
-            
+
         except Exception as e:
             print('error:', data[i]['path'])
             batch_output_text = ['<answer>error</answer>'] * BSZ
-            
+
 
         for j, (sample, model_output) in enumerate(zip(data[i:i+BSZ], batch_output_text), start=i):
             think_chain = extract_think(model_output)
@@ -255,7 +267,7 @@ for dataset_name in ['your_data_name']:
             if think_chain:
                 sample["process"] = f"<think>{think_chain}</think>"
             final_output.append(sample)
-        
+
         try:
             with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
                 json.dump({"results": final_output}, f, indent=2, ensure_ascii=False)

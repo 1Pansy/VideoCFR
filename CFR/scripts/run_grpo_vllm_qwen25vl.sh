@@ -1,23 +1,26 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-
-cd src/r1-v
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+cd "${REPO_ROOT}/CFR/r1-v"
 
 export DEBUG_MODE="true"
 export LOG_PATH="./vllm_run.txt"
 
+: "${SFT_MODEL_PATH:?Set SFT_MODEL_PATH=/path/to/sft/checkpoint}"
 
-QWEN_PATH='SFT Model Path'
-HF_DATASET="./Video-R1-data/Video-R1-260k.json"
-OUTPUT_DIR="./log/Qwen2.5-VL-7B-Video-GRPO"
+QWEN_PATH="${SFT_MODEL_PATH}"
+HF_DATASET="${GRPO_DATASET:-./Video-R1-data/Video-R1-260k.json}"
+OUTPUT_DIR="${OUTPUT_DIR:-./log/Qwen2.5-VL-7B-Video-GRPO}"
 if [ ! -d "$OUTPUT_DIR" ]; then
  mkdir -p "$OUTPUT_DIR"
 fi
-RUN_NAME="Qwen2.5-VL-7B-Video-GRPO"
-DS_CONFIG="local_scripts/zero3.json"  
+RUN_NAME="${RUN_NAME:-Qwen2.5-VL-7B-Video-GRPO}"
+DS_CONFIG="${DS_CONFIG:-local_scripts/zero3.json}"
 
 # Set temporal to choose between T-GRPO and GRPO, and len_control to enable or disable the length control reward.
-# NOTE: you are expected to use X + 1 cards for X training proc and 1 vLLM proc 
+# NOTE: you are expected to use X + 1 cards for X training proc and 1 vLLM proc
 # e.g., the visible devices should be 0,1,2,3,4 for 5 cards, and  --nproc_per_node="4"
 
 CUDA_VISIBLE_DEVICES="0,1,2,3,4" torchrun \

@@ -1,19 +1,19 @@
-#!/bin/bash
-# run_models.sh
+#!/usr/bin/env bash
+set -euo pipefail
 
-model_paths=(
-    "/modelpath"
-)
+CFR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-file_names=(
-    "CFR"
-)
+MODEL_PATH="${1:-${MODEL_PATH:-}}"
+RUN_NAME="${2:-${RUN_NAME:-VideoCFR}}"
 
-export DECORD_EOF_RETRY_MAX=40960
+if [[ -z "${MODEL_PATH}" ]]; then
+  echo "Usage: bash CFR/eval_bench.sh /path/to/model [run_name]" >&2
+  exit 1
+fi
 
+export DECORD_EOF_RETRY_MAX="${DECORD_EOF_RETRY_MAX:-40960}"
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 
-for i in "${!model_paths[@]}"; do
-    model="${model_paths[$i]}"
-    file_name="${file_names[$i]}"
-    CUDA_VISIBLE_DEVICES=0 python ./src/eval_bench.py --model_path "$model" --file_name "$file_name"
-done
+python "${CFR_DIR}/eval_bench.py" \
+  --model_path "${MODEL_PATH}" \
+  --file_name "${RUN_NAME}"

@@ -1,19 +1,35 @@
-# Install the packages in r1-v .
-cd src/r1-v 
-pip install -e ".[dev]"
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Addtional modules
-pip install wandb==0.18.3
-pip install tensorboardx
-pip install qwen_vl_utils torchvision
-pip install flash-attn --no-build-isolation
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# vLLM support 
-pip install vllm==0.7.2
+if [[ -z "${VIRTUAL_ENV:-}" && -z "${CONDA_PREFIX:-}" ]]; then
+  echo "Please activate a virtualenv or conda environment before running setup.sh." >&2
+  exit 1
+fi
 
-pip install nltk
-pip install rouge_score
-pip install deepspeed
+python -m pip install --upgrade pip
 
-# fix transformers version
-# pip install git+https://github.com/huggingface/transformers.git@336dc69d63d56f232a183a3e7f52790429b871ef
+# Local project packages.
+python -m pip install -e "${ROOT_DIR}/CFR/qwen-vl-utils[decord]"
+python -m pip install -e "${ROOT_DIR}/CFR/r1-v[dev]"
+
+# Runtime modules used by the provided scripts.
+python -m pip install \
+  wandb==0.18.3 \
+  tensorboardx \
+  torchvision \
+  vllm==0.7.2 \
+  nltk \
+  rouge_score \
+  deepspeed
+
+if [[ "${INSTALL_FLASH_ATTN:-1}" == "1" ]]; then
+  python -m pip install flash-attn --no-build-isolation
+else
+  echo "Skipping flash-attn because INSTALL_FLASH_ATTN=0."
+fi
+
+# Some environments require a specific Transformers revision. Enable manually
+# only when the installed version is incompatible with your checkpoint.
+# python -m pip install "git+https://github.com/huggingface/transformers.git@336dc69d63d56f232a183a3e7f52790429b871ef"
