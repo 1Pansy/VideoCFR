@@ -20,7 +20,7 @@ VideoCFR introduces **Consensus Frame GRPO (CF-GRPO)**, an annotation-free reinf
 
 This repository contains the training and evaluation code used for VideoCFR. Large model checkpoints, benchmark media, and training datasets are not stored in the git repository; see [docs/DATA_AND_MODELS.md](docs/DATA_AND_MODELS.md) for the expected local layout and source notes.
 
-## Release Status
+## 🚦 Release Status
 
 - Training code: available under [CFR/r1-v](CFR/r1-v).
 - CFR reward implementation: available in [CFR/r1-v/src/open_r1/trainer/grpo_trainer.py](CFR/r1-v/src/open_r1/trainer/grpo_trainer.py).
@@ -29,7 +29,7 @@ This repository contains the training and evaluation code used for VideoCFR. Lar
 - Model checkpoints and full datasets: not included in this repository.
 - Paper and checkpoint links: will be updated after public release.
 
-## Method Overview
+## 🧭 Method Overview
 
 CF-GRPO augments GRPO-style post-training with the **Consensus Frame Reward (CFR)**. CFR compares two frame-level distributions:
 
@@ -44,7 +44,7 @@ The reward favors agreement between these distributions while keeping standard a
 <em>Overview of consensus-prior construction and consensus-aware GRPO optimization.</em>
 </div>
 
-## Main Results
+## 📊 Main Results
 
 The table below summarizes the reported VideoCFR results from the current manuscript draft. Results are accuracy (%). Comparisons should be interpreted under the evaluation settings and frame budgets reported by the corresponding methods.
 
@@ -59,7 +59,7 @@ The table below summarizes the reported VideoCFR results from the current manusc
 
 Increasing the frame budget improves several benchmarks, while the effect remains benchmark-dependent. Ablations in the paper indicate that the consensus prior, sparse aggregation, and distribution sharpening each contribute to the final performance.
 
-## Repository Layout
+## 🗂️ Repository Layout
 
 ```text
 .
@@ -83,7 +83,7 @@ Increasing the frame budget improves several benchmarks, while the effect remain
 +-- setup.sh
 ```
 
-## Environment
+## ⚙️ Environment
 
 The training and evaluation code targets Linux machines with CUDA GPUs. The main experiments use 8 NVIDIA A800 GPUs. macOS can be used for reading and light code inspection, but CUDA-only packages such as `flash-attn`, `deepspeed`, and `vllm` are not expected to run there.
 
@@ -101,7 +101,7 @@ If `flash-attn` is already installed or cannot be built on your machine, skip it
 INSTALL_FLASH_ATTN=0 bash setup.sh
 ```
 
-## Inference
+## 🔍 Inference
 
 Run a single-video example with a local checkpoint or a compatible Hugging Face model:
 
@@ -116,7 +116,7 @@ python CFR/inference_example.py \
 
 The script uses vLLM and expects the model to support Qwen2.5-VL-style video inputs.
 
-## Training
+## 🏋️ Training
 
 The training scripts expect data under `CFR/r1-v/Video-R1-data/`. See [docs/DATA_AND_MODELS.md](docs/DATA_AND_MODELS.md) before launching training.
 
@@ -146,7 +146,7 @@ bash CFR/scripts/run_grpo_vllm_qwen25vl.sh
 
 Adjust `CUDA_VISIBLE_DEVICES`, `--nproc_per_node`, batch size, and DeepSpeed config for your hardware.
 
-## Evaluation
+## 🧪 Evaluation
 
 After preparing benchmark prompt files and media under `CFR/r1-v/Evaluation/` and `CFR/r1-v/Video-R1-data/`, run:
 
@@ -156,7 +156,7 @@ bash CFR/eval_bench.sh /path/to/model VideoCFR
 
 Outputs are written to `CFR/r1-v/eval_results/`.
 
-## Data and Model Files
+## 📦 Data and Model Files
 
 This repository intentionally excludes large files:
 
@@ -167,14 +167,14 @@ This repository intentionally excludes large files:
 
 Please follow the original licenses and terms for all datasets and base models. The expected local data layout is documented in [docs/DATA_AND_MODELS.md](docs/DATA_AND_MODELS.md).
 
-## Citation
+## 📝 Citation
 
 If this repository is useful for your work, please cite the project using [CITATION.cff](CITATION.cff). A BibTeX entry will be added after the paper metadata is finalized.
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 This codebase builds on open-source Video-MLLM and RL training components, including R1-V-style GRPO training code and Qwen-VL utilities. See [THIRD_PARTY.md](THIRD_PARTY.md) for source and license notes.
 
-## Contact
+## 📬 Contact
 
 Please open a GitHub issue for reproducibility questions, missing-file reports, or release requests.
